@@ -14,7 +14,7 @@ const supabase = createClient(
 );
 
 const TABLE = 'Videos'; // table name in Supabase
-const BUCKET = 'videos'; // storage bucket name
+const BUCKET = 'Videos'; // storage bucket name
 
 // Middleware
 app.use(express.json());
