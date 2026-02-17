@@ -7,7 +7,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Ensure data directories exist
-const DATA_DIR = path.join(__dirname, 'data');
+// On Render, use the persistent disk mount path; locally use ./data
+const DATA_DIR = process.env.RENDER ? '/opt/render/project/src/data' : path.join(__dirname, 'data');
 const VIDEOS_DIR = path.join(DATA_DIR, 'videos');
 const DATA_FILE = path.join(DATA_DIR, 'timesheets.json');
 
