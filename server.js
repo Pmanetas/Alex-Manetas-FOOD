@@ -62,6 +62,7 @@ app.get('/api/data', async (req, res) => {
                 meal2: row.meal2,
                 meal3: row.meal3,
                 meal4: extra.meal4 || false,
+                meal5: extra.meal5 || false,
                 note: text,
                 ...times
             };
@@ -120,6 +121,11 @@ app.post('/api/data/:dateKey', async (req, res) => {
             extra.meal4 = updates.meal4;
             if (updates.meal4) times.meal4_time = new Date().toISOString();
             else delete times.meal4_time;
+        }
+        if ('meal5' in updates) {
+            extra.meal5 = updates.meal5;
+            if (updates.meal5) times.meal5_time = new Date().toISOString();
+            else delete times.meal5_time;
         }
         if ('note' in updates) noteText = updates.note;
 
