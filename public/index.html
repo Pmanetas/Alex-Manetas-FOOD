@@ -398,7 +398,8 @@
 
             tbody td:nth-child(2),
             tbody td:nth-child(3),
-            tbody td:nth-child(4) {
+            tbody td:nth-child(4),
+            tbody td:nth-child(5) {
                 display: flex;
                 flex-direction: column;
                 gap: 6px;
@@ -417,7 +418,7 @@
             .vid-player { width: 100%; max-height: 200px; }
             .vid-btn { padding: 8px 16px; font-size: 13px; }
 
-            tbody td:nth-child(5) { padding-top: 10px; margin-top: 4px; }
+            tbody td:nth-child(6) { padding-top: 10px; margin-top: 4px; }
             .note-input { min-width: unset; width: 100%; font-size: 14px; }
         }
     </style>
@@ -450,11 +451,12 @@
                     <th>Meal 1 - Eggs x2</th>
                     <th>Meal 2 - Lasagna</th>
                     <th>Meal 3 - Soup</th>
+                    <th>Meal 4 - Shake</th>
                     <th>Notes</th>
                 </tr>
             </thead>
             <tbody id="tableBody">
-                <tr><td colspan="5" class="loading">Loading...</td></tr>
+                <tr><td colspan="6" class="loading">Loading...</td></tr>
             </tbody>
         </table>
     </div>
@@ -465,7 +467,7 @@
         const END_DATE = new Date(2026, 6, 31);
         const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const MEAL_LABELS = { 1: 'Meal 1 - Eggs x2', 2: 'Meal 2 - Lasagna', 3: 'Meal 3 - Soup' };
+        const MEAL_LABELS = { 1: 'Meal 1 - Eggs x2', 2: 'Meal 2 - Lasagna', 3: 'Meal 3 - Soup', 4: 'Meal 4 - Shake' };
 
         let savedData = {};
         let currentWeekPage = 0;
@@ -606,8 +608,8 @@
         }
 
         function getRowState(entry, date) {
-            const ticks = (entry.meal1 ? 1 : 0) + (entry.meal2 ? 1 : 0) + (entry.meal3 ? 1 : 0);
-            if (ticks === 3) return 'complete';
+            const ticks = (entry.meal1 ? 1 : 0) + (entry.meal2 ? 1 : 0) + (entry.meal3 ? 1 : 0) + (entry.meal4 ? 1 : 0);
+            if (ticks === 4) return 'complete';
             if (ticks > 0) return 'incomplete';
             if (isPast(date)) return 'incomplete'; // past day with 0 ticks = red
             return ''; // future untouched
@@ -636,7 +638,7 @@
                             <span class="date-text">${formatDate(date)}</span>
                         </div>
                     </td>
-                    ${[1,2,3].map(m => {
+                    ${[1,2,3,4].map(m => {
                         const timeStr = entry[`meal${m}_time`] ? `<span class="tick-time">${formatTime(entry[`meal${m}_time`])}</span>` : '';
                         return `
                         <td>
@@ -659,7 +661,7 @@
                 `;
 
                 // Checkbox listeners
-                [1,2,3].forEach(m => {
+                [1,2,3,4].forEach(m => {
                     row.querySelector(`#m${m}-${key}`).addEventListener('change', async (e) => {
                         await saveField(key, `meal${m}`, e.target.checked);
                         // Reload data to get timestamp then re-render
@@ -685,7 +687,7 @@
                 tbody.appendChild(row);
 
                 // Video cells
-                [1,2,3].forEach(m => {
+                [1,2,3,4].forEach(m => {
                     const cell = row.querySelector(`#vid-cell-${key}-${m}`);
                     if (hasVideo(key, m)) showVideoPlayer(key, m, cell);
                     else showVideoUpload(key, m, cell);
@@ -701,7 +703,7 @@
             let completed = 0;
             allDates.forEach(date => {
                 const e = savedData[dateKey(date)];
-                if (e && e.meal1 && e.meal2 && e.meal3) completed++;
+                if (e && e.meal1 && e.meal2 && e.meal3 && e.meal4) completed++;
             });
             const pct = totalDays > 0 ? Math.round((completed / totalDays) * 100) : 0;
             document.getElementById('totalDays').textContent = totalDays;

@@ -32,18 +32,18 @@ const upload = multer({
 
 // --- Helpers: pack/unpack note + timestamps into one text field ---
 function parseNote(raw) {
-    if (!raw) return { text: '', times: {} };
+    if (!raw) return { text: '', times: {}, extra: {} };
     try {
         const parsed = JSON.parse(raw);
         if (typeof parsed === 'object' && 'text' in parsed) {
-            return { text: parsed.text || '', times: parsed.times || {} };
+            return { text: parsed.text || '', times: parsed.times || {}, extra: parsed.extra || {} };
         }
     } catch {}
-    return { text: raw, times: {} };
+    return { text: raw, times: {}, extra: {} };
 }
 
-function packNote(text, times) {
-    return JSON.stringify({ text: text || '', times: times || {} });
+function packNote(text, times, extra) {
+    return JSON.stringify({ text: text || '', times: times || {}, extra: extra || {} });
 }
 
 // --- API Routes ---
@@ -56,11 +56,12 @@ app.get('/api/data', async (req, res) => {
 
         const result = {};
         data.forEach(row => {
-            const { text, times } = parseNote(row.note);
+            const { text, times, extra } = parseNote(row.note);
             result[row.date_key] = {
                 meal1: row.meal1,
                 meal2: row.meal2,
                 meal3: row.meal3,
+                meal4: extra.meal4 || false,
                 note: text,
                 ...times
             };
@@ -95,7 +96,7 @@ app.post('/api/data/:dateKey', async (req, res) => {
 
         // Get existing row to preserve data
         const { data: existing } = await supabase.from(TABLE).select('*').eq('date_key', dateKey).single();
-        const { text: existingNote, times } = parseNote(existing?.note);
+        const { text: existingNote, times, extra } = parseNote(existing?.note);
 
         const row = { date_key: dateKey };
         let noteText = existingNote;
@@ -115,9 +116,14 @@ app.post('/api/data/:dateKey', async (req, res) => {
             if (updates.meal3) times.meal3_time = new Date().toISOString();
             else delete times.meal3_time;
         }
+        if ('meal4' in updates) {
+            extra.meal4 = updates.meal4;
+            if (updates.meal4) times.meal4_time = new Date().toISOString();
+            else delete times.meal4_time;
+        }
         if ('note' in updates) noteText = updates.note;
 
-        row.note = packNote(noteText, times);
+        row.note = packNote(noteText, times, extra);
 
         const { error } = await supabase
             .from(TABLE)
