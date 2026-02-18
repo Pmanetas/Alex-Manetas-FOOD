@@ -23,15 +23,28 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Temp storage for multer (buffer in memory, then upload to Supabase)
 const upload = multer({
     storage: multer.memoryStorage(),
-    limits: { fileSize: 50 * 1024 * 1024 }, // 50MB max (Supabase free limit)
+    limits: { fileSize: 50 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
-        if (file.mimetype.startsWith('video/')) {
-            cb(null, true);
-        } else {
-            cb(new Error('Only video files are allowed'));
-        }
+        if (file.mimetype.startsWith('video/')) cb(null, true);
+        else cb(new Error('Only video files are allowed'));
     }
 });
+
+// --- Helpers: pack/unpack note + timestamps into one text field ---
+function parseNote(raw) {
+    if (!raw) return { text: '', times: {} };
+    try {
+        const parsed = JSON.parse(raw);
+        if (typeof parsed === 'object' && 'text' in parsed) {
+            return { text: parsed.text || '', times: parsed.times || {} };
+        }
+    } catch {}
+    return { text: raw, times: {} };
+}
+
+function packNote(text, times) {
+    return JSON.stringify({ text: text || '', times: times || {} });
+}
 
 // --- API Routes ---
 
@@ -41,14 +54,15 @@ app.get('/api/data', async (req, res) => {
         const { data, error } = await supabase.from(TABLE).select('*');
         if (error) throw error;
 
-        // Convert array of rows into { dateKey: { meal1, meal2, meal3, note } } format
         const result = {};
         data.forEach(row => {
+            const { text, times } = parseNote(row.note);
             result[row.date_key] = {
                 meal1: row.meal1,
                 meal2: row.meal2,
                 meal3: row.meal3,
-                note: row.note || ''
+                note: text,
+                ...times
             };
         });
 
@@ -56,7 +70,6 @@ app.get('/api/data', async (req, res) => {
         const { data: files } = await supabase.storage.from(BUCKET).list('', { limit: 1000 });
         if (files) {
             files.forEach(f => {
-                // filename format: 2026-02-17_meal1.mp4
                 const match = f.name.match(/^(\d{4}-\d{2}-\d{2})_meal(\d)/);
                 if (match) {
                     const [, dateKey, mealNum] = match;
@@ -80,11 +93,31 @@ app.post('/api/data/:dateKey', async (req, res) => {
         const { dateKey } = req.params;
         const updates = req.body;
 
+        // Get existing row to preserve data
+        const { data: existing } = await supabase.from(TABLE).select('*').eq('date_key', dateKey).single();
+        const { text: existingNote, times } = parseNote(existing?.note);
+
         const row = { date_key: dateKey };
-        if ('meal1' in updates) row.meal1 = updates.meal1;
-        if ('meal2' in updates) row.meal2 = updates.meal2;
-        if ('meal3' in updates) row.meal3 = updates.meal3;
-        if ('note' in updates) row.note = updates.note;
+        let noteText = existingNote;
+
+        if ('meal1' in updates) {
+            row.meal1 = updates.meal1;
+            if (updates.meal1) times.meal1_time = new Date().toISOString();
+            else delete times.meal1_time;
+        }
+        if ('meal2' in updates) {
+            row.meal2 = updates.meal2;
+            if (updates.meal2) times.meal2_time = new Date().toISOString();
+            else delete times.meal2_time;
+        }
+        if ('meal3' in updates) {
+            row.meal3 = updates.meal3;
+            if (updates.meal3) times.meal3_time = new Date().toISOString();
+            else delete times.meal3_time;
+        }
+        if ('note' in updates) noteText = updates.note;
+
+        row.note = packNote(noteText, times);
 
         const { error } = await supabase
             .from(TABLE)
@@ -107,10 +140,8 @@ app.post('/api/video/:dateKey/:meal', upload.single('video'), async (req, res) =
         const ext = path.extname(req.file.originalname) || '.mp4';
         const filename = `${dateKey}_meal${meal}${ext}`;
 
-        // Delete old file first (if exists)
         await supabase.storage.from(BUCKET).remove([filename]);
 
-        // Upload new file
         const { error } = await supabase.storage
             .from(BUCKET)
             .upload(filename, req.file.buffer, {
@@ -131,7 +162,6 @@ app.get('/api/video/:dateKey/:meal', async (req, res) => {
     try {
         const { dateKey, meal } = req.params;
 
-        // List files to find the right one (could be .mp4, .mov, etc)
         const { data: files } = await supabase.storage.from(BUCKET).list('', { limit: 1000 });
         const prefix = `${dateKey}_meal${meal}`;
         const file = files?.find(f => f.name.startsWith(prefix));
@@ -168,10 +198,8 @@ app.delete('/api/video/:dateKey/:meal', async (req, res) => {
 // Clear all data
 app.delete('/api/data', async (req, res) => {
     try {
-        // Delete all rows
         await supabase.from(TABLE).delete().neq('date_key', '');
 
-        // Delete all videos
         const { data: files } = await supabase.storage.from(BUCKET).list('', { limit: 1000 });
         if (files?.length > 0) {
             await supabase.storage.from(BUCKET).remove(files.map(f => f.name));

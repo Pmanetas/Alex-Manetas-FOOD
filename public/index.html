@@ -5,23 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alex Timesheets</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #1a1a2e;
-            color: #e0e0e0;
+            background: #0a0a0a;
+            color: #d0d0d0;
             min-height: 100vh;
         }
 
         header {
-            background: linear-gradient(135deg, #16213e, #0f3460);
+            background: #141414;
             padding: 24px 40px;
-            border-bottom: 3px solid #e94560;
+            border-bottom: 2px solid #2a2a2a;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -34,35 +30,33 @@
             letter-spacing: 1px;
         }
 
-        header h1 span {
-            color: #e94560;
-        }
+        header h1 span { color: #aaa; }
 
         .stats {
             display: flex;
             gap: 24px;
             font-size: 14px;
-            color: #a0a0b8;
+            color: #888;
         }
 
         .stats .stat-value {
-            color: #e94560;
+            color: #fff;
             font-weight: 700;
             font-size: 16px;
         }
 
         .controls {
             padding: 16px 40px;
-            background: #16213e;
+            background: #111;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #0f3460;
+            border-bottom: 1px solid #222;
         }
 
         .controls button {
-            background: #e94560;
-            color: white;
+            background: #333;
+            color: #ddd;
             border: none;
             padding: 8px 20px;
             border-radius: 6px;
@@ -72,9 +66,7 @@
             transition: background 0.2s;
         }
 
-        .controls button:hover {
-            background: #c73652;
-        }
+        .controls button:hover { background: #444; }
 
         .controls .week-nav {
             display: flex;
@@ -83,18 +75,17 @@
         }
 
         .controls .week-nav button {
-            background: #0f3460;
+            background: #222;
             padding: 6px 14px;
         }
 
-        .controls .week-nav button:hover {
-            background: #1a4a8a;
-        }
+        .controls .week-nav button:hover { background: #333; }
 
         .controls .week-nav span {
             font-size: 14px;
             min-width: 120px;
             text-align: center;
+            color: #999;
         }
 
         .table-container {
@@ -105,22 +96,22 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            background: #16213e;
+            background: #111;
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
         }
 
         thead th {
-            background: #0f3460;
+            background: #1a1a1a;
             padding: 14px 20px;
             text-align: center;
             font-weight: 700;
-            font-size: 15px;
-            color: #ffffff;
+            font-size: 14px;
+            color: #999;
             text-transform: uppercase;
             letter-spacing: 1px;
-            border-bottom: 3px solid #e94560;
+            border-bottom: 2px solid #333;
         }
 
         thead th:first-child {
@@ -128,31 +119,55 @@
             min-width: 180px;
         }
 
+        /* Row states */
         tbody tr {
             transition: background 0.15s;
+            border-left: 4px solid transparent;
         }
 
-        tbody tr:hover {
-            background: #1a2a4e;
+        tbody tr:hover { background: #1a1a1a; }
+
+        /* Default untouched row */
+        tbody tr { background: #0e0e0e; }
+
+        /* Green: all 3 meals ticked */
+        tbody tr.complete {
+            background: #0a1f0a;
+            border-left: 4px solid #2ecc40;
         }
 
-        tbody tr.weekend {
-            background: #1e1e3a;
+        /* Red: partially ticked (1 or 2) */
+        tbody tr.incomplete {
+            background: #1f0a0a;
+            border-left: 4px solid #e74c3c;
         }
 
-        tbody tr.weekend:hover {
-            background: #252550;
+        /* Today highlight */
+        tbody tr.today td:first-child {
+            position: relative;
         }
 
-        tbody tr.today {
-            background: #1a3a2e;
-            border-left: 4px solid #e94560;
+        tbody tr.today .date-cell {
+            background: #fff;
+            color: #000;
+            padding: 6px 10px;
+            border-radius: 6px;
+            display: inline-flex;
+        }
+
+        tbody tr.today .date-cell .day-name {
+            color: #333;
+        }
+
+        tbody tr.today .date-cell .date-text {
+            color: #000;
+            font-weight: 700;
         }
 
         tbody td {
             padding: 10px 20px;
             text-align: center;
-            border-bottom: 1px solid #1a1a2e;
+            border-bottom: 1px solid #1a1a1a;
             font-size: 14px;
         }
 
@@ -169,18 +184,14 @@
 
         .date-cell .day-name {
             font-size: 11px;
-            color: #7a7a9a;
+            color: #666;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .date-cell .date-text {
             font-size: 14px;
-            color: #e0e0e0;
-        }
-
-        .weekend .date-cell .day-name {
-            color: #e94560;
+            color: #ccc;
         }
 
         /* Meal cell */
@@ -188,7 +199,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
         }
 
         .meal-top {
@@ -197,38 +208,48 @@
             gap: 8px;
         }
 
-        /* Custom checkbox */
+        .meal-label {
+            font-size: 11px;
+            color: #777;
+            white-space: nowrap;
+        }
+
+        .tick-time {
+            font-size: 10px;
+            color: #555;
+            margin-top: 2px;
+        }
+
+        /* Checkbox */
         .checkbox-wrapper {
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
-        .checkbox-wrapper input[type="checkbox"] {
-            display: none;
-        }
+        .checkbox-wrapper input[type="checkbox"] { display: none; }
 
         .checkbox-wrapper label {
             width: 28px;
             height: 28px;
-            border: 2px solid #3a3a5a;
+            border: 2px solid #333;
             border-radius: 6px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
-            background: #1a1a2e;
+            background: #0a0a0a;
         }
 
         .checkbox-wrapper label:hover {
-            border-color: #e94560;
-            background: #2a1a2e;
+            border-color: #666;
+            background: #1a1a1a;
         }
 
         .checkbox-wrapper input[type="checkbox"]:checked + label {
-            background: #e94560;
-            border-color: #e94560;
+            background: #2ecc40;
+            border-color: #2ecc40;
         }
 
         .checkbox-wrapper input[type="checkbox"]:checked + label::after {
@@ -238,12 +259,7 @@
             font-weight: 700;
         }
 
-        .meal-label {
-            font-size: 12px;
-            color: #a0a0b8;
-            white-space: nowrap;
-        }
-
+        /* Video */
         .video-cell {
             display: flex;
             flex-direction: column;
@@ -252,15 +268,13 @@
             margin-top: 4px;
         }
 
-        .vid-input {
-            display: none;
-        }
+        .vid-input { display: none; }
 
         .vid-btn {
             display: inline-block;
             padding: 4px 10px;
-            background: #0f3460;
-            color: #e0e0e0;
+            background: #222;
+            color: #999;
             border-radius: 4px;
             cursor: pointer;
             font-size: 11px;
@@ -269,9 +283,7 @@
             white-space: nowrap;
         }
 
-        .vid-btn:hover {
-            background: #1a4a8a;
-        }
+        .vid-btn:hover { background: #333; }
 
         .vid-player {
             width: 160px;
@@ -282,8 +294,8 @@
 
         .vid-remove {
             background: none;
-            border: 1px solid #5a3a3a;
-            color: #e94560;
+            border: 1px solid #3a2020;
+            color: #e74c3c;
             padding: 2px 8px;
             border-radius: 4px;
             cursor: pointer;
@@ -291,18 +303,17 @@
             transition: background 0.2s;
         }
 
-        .vid-remove:hover {
-            background: #3a1a1e;
-        }
+        .vid-remove:hover { background: #1f0a0a; }
 
+        /* Notes */
         .note-input {
             width: 100%;
             min-width: 150px;
             padding: 6px 10px;
-            background: #1a1a2e;
-            border: 1px solid #3a3a5a;
+            background: #0a0a0a;
+            border: 1px solid #2a2a2a;
             border-radius: 6px;
-            color: #e0e0e0;
+            color: #d0d0d0;
             font-size: 13px;
             font-family: inherit;
             outline: none;
@@ -313,31 +324,17 @@
             line-height: 1.4;
         }
 
-        .note-input:focus {
-            border-color: #e94560;
-        }
+        .note-input:focus { border-color: #555; }
+        .note-input::placeholder { color: #444; }
 
-        .note-input::placeholder {
-            color: #5a5a7a;
-        }
-
-        .all-checked td {
-            opacity: 0.6;
-        }
-
-        .all-checked .checkbox-wrapper input[type="checkbox"]:checked + label {
-            background: #2d8659;
-            border-color: #2d8659;
-        }
-
-        /* Loading */
         .loading {
             text-align: center;
             padding: 40px;
-            color: #7a7a9a;
+            color: #555;
             font-size: 16px;
         }
 
+        /* Mobile */
         @media (max-width: 700px) {
             header {
                 padding: 14px 16px;
@@ -345,18 +342,9 @@
                 gap: 10px;
             }
 
-            header h1 {
-                font-size: 22px;
-            }
-
-            .stats {
-                gap: 12px;
-                font-size: 12px;
-            }
-
-            .stats .stat-value {
-                font-size: 14px;
-            }
+            header h1 { font-size: 22px; }
+            .stats { gap: 12px; font-size: 12px; }
+            .stats .stat-value { font-size: 14px; }
 
             .controls {
                 padding: 10px 16px;
@@ -364,39 +352,27 @@
                 gap: 10px;
             }
 
-            .controls button {
-                padding: 8px 14px;
-                font-size: 13px;
-            }
+            .controls button { padding: 8px 14px; font-size: 13px; }
+            .table-container { padding: 10px; }
 
-            .table-container {
-                padding: 10px;
-            }
-
-            table, thead, tbody, tr, th, td {
-                display: block;
-            }
-
-            thead {
-                display: none;
-            }
+            table, thead, tbody, tr, th, td { display: block; }
+            thead { display: none; }
 
             tbody tr {
-                background: #16213e;
                 border-radius: 10px;
                 margin-bottom: 12px;
                 padding: 14px;
-                border: 1px solid #0f3460;
+                border: 1px solid #222;
             }
 
-            tbody tr.weekend {
-                background: #1e1e3a;
-                border-color: #2a2a4a;
+            tbody tr.complete {
+                border: 1px solid #2ecc40;
+                border-left: 4px solid #2ecc40;
             }
 
-            tbody tr.today {
-                border-left: 4px solid #e94560;
-                background: #1a3a2e;
+            tbody tr.incomplete {
+                border: 1px solid #e74c3c;
+                border-left: 4px solid #e74c3c;
             }
 
             tbody td {
@@ -408,7 +384,7 @@
             tbody td:first-child {
                 padding-bottom: 10px;
                 margin-bottom: 8px;
-                border-bottom: 1px solid #0f3460;
+                border-bottom: 1px solid #222;
             }
 
             .date-cell {
@@ -417,15 +393,8 @@
                 gap: 8px;
             }
 
-            .date-cell .day-name {
-                font-size: 12px;
-                min-width: 40px;
-            }
-
-            .date-cell .date-text {
-                font-size: 15px;
-                font-weight: 600;
-            }
+            .date-cell .day-name { font-size: 12px; min-width: 40px; }
+            .date-cell .date-text { font-size: 15px; font-weight: 600; }
 
             tbody td:nth-child(2),
             tbody td:nth-child(3),
@@ -434,57 +403,22 @@
                 flex-direction: column;
                 gap: 6px;
                 padding: 8px 0;
-                border-bottom: 1px solid #0f3460;
+                border-bottom: 1px solid #1a1a1a;
             }
 
-            .meal-cell {
-                width: 100%;
-            }
+            .meal-cell { width: 100%; }
+            .meal-top { width: 100%; justify-content: space-between; }
 
-            .meal-top {
-                width: 100%;
-                justify-content: space-between;
-            }
+            .checkbox-wrapper label { width: 34px; height: 34px; }
+            .checkbox-wrapper input[type="checkbox"]:checked + label::after { font-size: 18px; }
+            .meal-label { font-size: 13px; }
 
-            .checkbox-wrapper label {
-                width: 34px;
-                height: 34px;
-            }
+            .video-cell { flex-direction: row; justify-content: flex-start; gap: 8px; }
+            .vid-player { width: 100%; max-height: 200px; }
+            .vid-btn { padding: 8px 16px; font-size: 13px; }
 
-            .checkbox-wrapper input[type="checkbox"]:checked + label::after {
-                font-size: 18px;
-            }
-
-            .meal-label {
-                font-size: 13px;
-            }
-
-            .video-cell {
-                flex-direction: row;
-                justify-content: flex-start;
-                gap: 8px;
-            }
-
-            .vid-player {
-                width: 100%;
-                max-height: 200px;
-            }
-
-            .vid-btn {
-                padding: 8px 16px;
-                font-size: 13px;
-            }
-
-            tbody td:nth-child(5) {
-                padding-top: 10px;
-                margin-top: 4px;
-            }
-
-            .note-input {
-                min-width: unset;
-                width: 100%;
-                font-size: 14px;
-            }
+            tbody td:nth-child(5) { padding-top: 10px; margin-top: 4px; }
+            .note-input { min-width: unset; width: 100%; font-size: 14px; }
         }
     </style>
 </head>
@@ -500,11 +434,11 @@
     <div class="controls">
         <div class="week-nav">
             <button id="prevWeek">&larr; Prev</button>
-            <span id="weekLabel">Week 1 of 24</span>
+            <span id="weekLabel">Week 1</span>
             <button id="nextWeek">Next &rarr;</button>
         </div>
         <div style="display:flex; gap:8px;">
-            <button id="jumpToday">Jump to Today</button>
+            <button id="jumpToday">Today</button>
             <button id="clearAll">Clear All</button>
         </div>
     </div>
@@ -513,9 +447,9 @@
             <thead>
                 <tr>
                     <th>Date</th>
-                    <th>Meal 1</th>
-                    <th>Meal 2</th>
-                    <th>Meal 3</th>
+                    <th>Meal 1 - Eggs x2</th>
+                    <th>Meal 2 - Lasagna</th>
+                    <th>Meal 3 - Soup</th>
                     <th>Notes</th>
                 </tr>
             </thead>
@@ -526,53 +460,69 @@
     </div>
 
     <script>
-        const START_DATE = new Date(2026, 1, 17);
+        // Week 1 starts Wed Feb 18, weeks run Mon-Sun except week 1
+        const START_DATE = new Date(2026, 1, 18); // Wed Feb 18
         const END_DATE = new Date(2026, 6, 31);
         const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const MEAL_NAMES = { 1: 'Eggs x2', 2: 'Lasagna', 3: 'Soup' };
+        const MEAL_LABELS = { 1: 'Meal 1 - Eggs x2', 2: 'Meal 2 - Lasagna', 3: 'Meal 3 - Soup' };
 
         let savedData = {};
         let currentWeekPage = 0;
-        const DAYS_PER_PAGE = 7;
 
-        const allDates = [];
-        let d = new Date(START_DATE);
-        while (d <= END_DATE) {
-            allDates.push(new Date(d));
-            d.setDate(d.getDate() + 1);
+        // Build weeks: week 1 = Wed Feb 18 to Sun Feb 22, then Mon-Sun after
+        const weeks = [];
+        let cursor = new Date(START_DATE);
+
+        // Week 1: Wed to Sun
+        let week1 = [];
+        while (cursor <= END_DATE && cursor.getDay() !== 1) { // stop when we hit Monday
+            week1.push(new Date(cursor));
+            cursor.setDate(cursor.getDate() + 1);
         }
-        const totalWeeks = Math.ceil(allDates.length / 7);
+        if (week1.length > 0) weeks.push(week1);
+
+        // Remaining weeks: Mon to Sun
+        while (cursor <= END_DATE) {
+            let week = [];
+            for (let i = 0; i < 7 && cursor <= END_DATE; i++) {
+                week.push(new Date(cursor));
+                cursor.setDate(cursor.getDate() + 1);
+            }
+            if (week.length > 0) weeks.push(week);
+        }
+
+        const allDates = weeks.flat();
 
         // --- Server API ---
         async function loadData() {
             try {
                 const res = await fetch('/api/data');
                 savedData = await res.json();
-            } catch {
-                savedData = {};
-            }
+            } catch { savedData = {}; }
         }
 
         async function saveField(key, field, value) {
             if (!savedData[key]) savedData[key] = {};
             savedData[key][field] = value;
-            await fetch(`/api/data/${key}`, {
+            const res = await fetch(`/api/data/${key}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ [field]: value })
             });
+            // Reload the entry to get the server timestamp
+            const fullData = await res.json();
+            if (fullData.times) {
+                Object.assign(savedData[key], fullData.times);
+            }
         }
 
         async function uploadVideo(key, mealNum, file, cell) {
             const formData = new FormData();
             formData.append('video', file);
-            cell.innerHTML = '<span style="color:#7a7a9a;font-size:11px;">Uploading...</span>';
+            cell.innerHTML = '<span style="color:#555;font-size:11px;">Uploading...</span>';
             try {
-                const res = await fetch(`/api/video/${key}/${mealNum}`, {
-                    method: 'POST',
-                    body: formData
-                });
+                const res = await fetch(`/api/video/${key}/${mealNum}`, { method: 'POST', body: formData });
                 const data = await res.json();
                 if (data.ok) {
                     if (!savedData[key]) savedData[key] = {};
@@ -581,7 +531,7 @@
                     showVideoPlayer(key, mealNum, cell);
                 }
             } catch {
-                cell.innerHTML = '<span style="color:#e94560;font-size:11px;">Upload failed</span>';
+                cell.innerHTML = '<span style="color:#e74c3c;font-size:11px;">Upload failed</span>';
             }
         }
 
@@ -611,12 +561,26 @@
             return date.getDate() === now.getDate() && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
         }
 
-        function isWeekend(date) {
-            return date.getDay() === 0 || date.getDay() === 6;
+        function isPast(date) {
+            const now = new Date();
+            now.setHours(0,0,0,0);
+            const d = new Date(date);
+            d.setHours(0,0,0,0);
+            return d < now;
         }
 
         function hasVideo(key, mealNum) {
             return !!savedData[key]?.videos?.[`meal${mealNum}`];
+        }
+
+        function formatTime(isoString) {
+            if (!isoString) return '';
+            const d = new Date(isoString);
+            const h = d.getHours();
+            const m = String(d.getMinutes()).padStart(2, '0');
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            const h12 = h % 12 || 12;
+            return `${h12}:${m} ${ampm}`;
         }
 
         function showVideoUpload(key, mealNum, cell) {
@@ -641,25 +605,29 @@
             });
         }
 
+        function getRowState(entry, date) {
+            const ticks = (entry.meal1 ? 1 : 0) + (entry.meal2 ? 1 : 0) + (entry.meal3 ? 1 : 0);
+            if (ticks === 3) return 'complete';
+            if (ticks > 0) return 'incomplete';
+            if (isPast(date)) return 'incomplete'; // past day with 0 ticks = red
+            return ''; // future untouched
+        }
+
         // --- Render ---
         function renderTable() {
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
 
-            const start = currentWeekPage * DAYS_PER_PAGE;
-            const end = Math.min(start + DAYS_PER_PAGE, allDates.length);
-            const pageDates = allDates.slice(start, end);
+            const weekDates = weeks[currentWeekPage] || [];
 
-            pageDates.forEach((date) => {
+            weekDates.forEach((date) => {
                 const key = dateKey(date);
                 const row = document.createElement('tr');
                 const entry = savedData[key] || {};
 
-                if (isWeekend(date)) row.classList.add('weekend');
+                const state = getRowState(entry, date);
+                if (state) row.classList.add(state);
                 if (isToday(date)) row.classList.add('today');
-                if (entry.meal1 && entry.meal2 && entry.meal3) row.classList.add('all-checked');
-
-                const showLabels = currentWeekPage < 3;
 
                 row.innerHTML = `
                     <td>
@@ -668,20 +636,23 @@
                             <span class="date-text">${formatDate(date)}</span>
                         </div>
                     </td>
-                    ${[1,2,3].map(m => `
-                    <td>
-                        <div class="meal-cell">
-                            <div class="meal-top">
-                                <div class="checkbox-wrapper">
-                                    <input type="checkbox" id="m${m}-${key}" ${entry[`meal${m}`] ? 'checked' : ''}>
-                                    <label for="m${m}-${key}"></label>
+                    ${[1,2,3].map(m => {
+                        const timeStr = entry[`meal${m}_time`] ? `<span class="tick-time">${formatTime(entry[`meal${m}_time`])}</span>` : '';
+                        return `
+                        <td>
+                            <div class="meal-cell">
+                                <div class="meal-top">
+                                    <div class="checkbox-wrapper">
+                                        <input type="checkbox" id="m${m}-${key}" ${entry[`meal${m}`] ? 'checked' : ''}>
+                                        <label for="m${m}-${key}"></label>
+                                    </div>
+                                    <span class="meal-label">${MEAL_LABELS[m]}</span>
                                 </div>
-                                ${showLabels ? `<span class="meal-label">${MEAL_NAMES[m]}</span>` : ''}
+                                ${timeStr}
+                                <div class="video-cell" id="vid-cell-${key}-${m}"></div>
                             </div>
-                            <div class="video-cell" id="vid-cell-${key}-${m}"></div>
-                        </div>
-                    </td>
-                    `).join('')}
+                        </td>`;
+                    }).join('')}
                     <td>
                         <textarea class="note-input" id="note-${key}" rows="1" placeholder="Add a note...">${(entry.note || '').replace(/</g, '&lt;')}</textarea>
                     </td>
@@ -691,13 +662,9 @@
                 [1,2,3].forEach(m => {
                     row.querySelector(`#m${m}-${key}`).addEventListener('change', async (e) => {
                         await saveField(key, `meal${m}`, e.target.checked);
-                        updateStats();
-                        const ent = savedData[key] || {};
-                        if (ent.meal1 && ent.meal2 && ent.meal3) {
-                            row.classList.add('all-checked');
-                        } else {
-                            row.classList.remove('all-checked');
-                        }
+                        // Reload data to get timestamp then re-render
+                        await loadData();
+                        renderTable();
                     });
                 });
 
@@ -712,25 +679,20 @@
                 noteEl.addEventListener('input', (e) => {
                     autoGrow(e.target);
                     clearTimeout(noteTimer);
-                    noteTimer = setTimeout(() => {
-                        saveField(key, 'note', e.target.value);
-                    }, 500);
+                    noteTimer = setTimeout(() => saveField(key, 'note', e.target.value), 500);
                 });
 
                 tbody.appendChild(row);
 
-                // Video cells — render after row is in DOM
+                // Video cells
                 [1,2,3].forEach(m => {
                     const cell = row.querySelector(`#vid-cell-${key}-${m}`);
-                    if (hasVideo(key, m)) {
-                        showVideoPlayer(key, m, cell);
-                    } else {
-                        showVideoUpload(key, m, cell);
-                    }
+                    if (hasVideo(key, m)) showVideoPlayer(key, m, cell);
+                    else showVideoUpload(key, m, cell);
                 });
             });
 
-            document.getElementById('weekLabel').textContent = `Week ${currentWeekPage + 1} of ${totalWeeks}`;
+            document.getElementById('weekLabel').textContent = `Week ${currentWeekPage + 1} of ${weeks.length}`;
             updateStats();
         }
 
@@ -738,8 +700,7 @@
             const totalDays = allDates.length;
             let completed = 0;
             allDates.forEach(date => {
-                const key = dateKey(date);
-                const e = savedData[key];
+                const e = savedData[dateKey(date)];
                 if (e && e.meal1 && e.meal2 && e.meal3) completed++;
             });
             const pct = totalDays > 0 ? Math.round((completed / totalDays) * 100) : 0;
@@ -750,10 +711,10 @@
 
         function jumpToToday() {
             const now = new Date();
-            const idx = allDates.findIndex(d =>
+            const idx = weeks.findIndex(w => w.some(d =>
                 d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
-            );
-            currentWeekPage = idx >= 0 ? Math.floor(idx / DAYS_PER_PAGE) : 0;
+            ));
+            currentWeekPage = idx >= 0 ? idx : 0;
             renderTable();
         }
 
@@ -762,7 +723,7 @@
             if (currentWeekPage > 0) { currentWeekPage--; renderTable(); }
         });
         document.getElementById('nextWeek').addEventListener('click', () => {
-            if (currentWeekPage < totalWeeks - 1) { currentWeekPage++; renderTable(); }
+            if (currentWeekPage < weeks.length - 1) { currentWeekPage++; renderTable(); }
         });
         document.getElementById('jumpToday').addEventListener('click', jumpToToday);
         document.getElementById('clearAll').addEventListener('click', () => {
