@@ -450,7 +450,7 @@
                 <tr>
                     <th>Date</th>
                     <th>Meal 1 - Eggs</th>
-                    <th>Meal 2 - Porridge</th>
+                    <th>Meal 2 - Porridge/Couscous</th>
                     <th>Meal 3 - Lasagna</th>
                     <th>Meal 4 - Shake</th>
                     <th>Meal 5 - Soup</th>
@@ -469,7 +469,12 @@
         const END_DATE = new Date(2026, 6, 31);
         const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const MEAL_LABELS = { 1: 'Meal 1 - Eggs (10am-12pm)', 2: 'Meal 2 - Porridge (2pm-3pm)', 3: 'Meal 3 - Lasagna (6pm-8pm)', 4: 'Meal 4 - Shake (8pm)', 5: 'Meal 5 - Soup (10pm-11pm)' };
+        const COUSCOUS_START = new Date(2026, 1, 20); // Feb 20
+        function getMealLabel(m, date) {
+            if (m === 2 && date >= COUSCOUS_START) return 'Meal 2 - Couscous (2pm-3pm)';
+            const labels = { 1: 'Meal 1 - Eggs (10am-12pm)', 2: 'Meal 2 - Porridge (2pm-3pm)', 3: 'Meal 3 - Lasagna (6pm-8pm)', 4: 'Meal 4 - Shake (8pm)', 5: 'Meal 5 - Soup (10pm-11pm)' };
+            return labels[m];
+        }
 
         let savedData = {};
         let currentWeekPage = 0;
@@ -642,6 +647,7 @@
                     </td>
                     ${[1,2,3,4,5].map(m => {
                         const timeStr = entry[`meal${m}_time`] ? `<span class="tick-time">${formatTime(entry[`meal${m}_time`])}</span>` : '';
+                        const showLabel = currentWeekPage < 3;
                         return `
                         <td>
                             <div class="meal-cell">
@@ -650,7 +656,7 @@
                                         <input type="checkbox" id="m${m}-${key}" ${entry[`meal${m}`] ? 'checked' : ''}>
                                         <label for="m${m}-${key}"></label>
                                     </div>
-                                    <span class="meal-label">${MEAL_LABELS[m]}</span>
+                                    ${showLabel ? `<span class="meal-label">${getMealLabel(m, date)}</span>` : ''}
                                 </div>
                                 ${timeStr}
                                 <div class="video-cell" id="vid-cell-${key}-${m}"></div>
